@@ -1,352 +1,194 @@
-from pathlib import Path
 
 html = r'''<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Weekend Escape — discover curated 2–3 day adventures across India." />
-  <meta name="theme-color" content="#07111f" />
-  <title>Weekend Escape | Frontend Arena</title>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
-          },
-          boxShadow: {
-            soft: "0 18px 50px rgba(15, 23, 42, .10)"
-          }
-        }
-      }
-    };
-  </script>
-
-  <style>
-    html { scroll-behavior: smooth; }
-    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
-    .hero-bg { animation: zoom 18s ease-in-out infinite alternate; }
-    @keyframes zoom {
-      from { transform: scale(1); }
-      to { transform: scale(1.08); }
-    }
-    .fade-up { animation: fadeUp .65s ease both; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .card-img { transition: transform .5s ease; }
-    .destination-card:hover .card-img { transform: scale(1.07); }
-    .glass { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-    .focus-ring:focus-visible {
-      outline: 3px solid #34d399;
-      outline-offset: 3px;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="Weekend Escape - Discover India's best short getaways.">
+<title>Weekend Escape — Explore India</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={darkMode:"class",theme:{extend:{fontFamily:{sans:["Inter","system-ui","sans-serif"]}}}}
+</script>
+<style>
+html{scroll-behavior:smooth}body{font-family:Inter,system-ui,sans-serif}
+.hero{background:linear-gradient(120deg,rgba(2,6,23,.88),rgba(2,6,23,.38)),url("https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2200&q=90") center/cover}
+.float{animation:float 5s ease-in-out infinite}@keyframes float{50%{transform:translateY(-8px)}}
+.card{transition:.3s}.card:hover{transform:translateY(-6px);box-shadow:0 20px 45px rgba(15,23,42,.13)}
+.img{transition:.55s}.card:hover .img{transform:scale(1.08)}
+.glass{backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.ring:focus-visible{outline:3px solid #34d399;outline-offset:3px}
+.no-scroll{overflow:hidden}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
 </head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
 
-<body class="bg-slate-50 text-slate-900 antialiased">
-  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:z-[100] focus:top-3 focus:left-3 focus:bg-slate-950 focus:text-white focus:px-4 focus:py-3 focus:rounded-xl">
-    Skip to main content
-  </a>
+<!-- NAV -->
+<header class="fixed top-0 z-50 w-full">
+<div class="max-w-7xl mx-auto px-3 sm:px-6 pt-3">
+<div class="glass bg-slate-950/90 border border-white/10 rounded-2xl shadow-2xl px-4 py-3">
+<div class="flex items-center justify-between">
+<button onclick="go('home')" class="ring flex items-center gap-3">
+<span class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-300 to-teal-500 text-slate-950 grid place-items-center font-black">WE</span>
+<span class="text-left"><b class="block text-white text-lg">Weekend Escape</b><small class="text-slate-400 tracking-widest uppercase">India • Short Getaways</small></span>
+</button>
+<nav class="hidden md:flex gap-7 text-sm font-bold text-slate-200">
+<button class="ring hover:text-emerald-300" onclick="go('home')">Home</button>
+<button class="ring hover:text-emerald-300" onclick="go('explore')">Explore</button>
+<button class="ring hover:text-emerald-300" onclick="go('dashboard')">Dashboard</button>
+<button class="ring hover:text-emerald-300" onclick="go('about')">About</button>
+</nav>
+<div class="hidden md:flex gap-2 items-center">
+<button onclick="toggleTheme()" class="ring w-10 h-10 rounded-xl bg-white/10 text-white" id="theme">☾</button>
+<button onclick="openDash()" class="ring px-4 py-2.5 rounded-xl bg-emerald-400 text-slate-950 font-black">My Dashboard</button>
+</div>
+<button id="menuBtn" onclick="toggleMenu()" class="md:hidden ring w-11 h-11 rounded-xl bg-white/10 text-white text-xl">☰</button>
+</div>
+<div id="mobile" class="hidden md:hidden border-t border-white/10 mt-3 pt-3 space-y-1">
+<button onclick="mobileGo('home')" class="w-full text-left p-3 text-white rounded-xl hover:bg-white/10">Home</button>
+<button onclick="mobileGo('explore')" class="w-full text-left p-3 text-white rounded-xl hover:bg-white/10">Explore</button>
+<button onclick="mobileGo('dashboard')" class="w-full text-left p-3 text-white rounded-xl hover:bg-white/10">Dashboard</button>
+<button onclick="mobileGo('about')" class="w-full text-left p-3 text-white rounded-xl hover:bg-white/10">About</button>
+</div>
+</div></div></header>
 
-  <!-- Header -->
-  <header id="header" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-      <div id="navShell" class="glass bg-slate-950/85 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 shadow-lg">
-        <div class="flex items-center justify-between gap-4">
-          <button onclick="scrollToId('home')" class="focus-ring flex items-center gap-3 text-left" aria-label="Weekend Escape home">
-            <span class="grid place-items-center w-11 h-11 rounded-xl bg-emerald-400 text-slate-950 font-black shadow-lg">WE</span>
-            <span>
-              <span class="block text-white font-extrabold text-lg leading-tight">Weekend Escape</span>
-              <span class="block text-slate-300 text-[10px] uppercase tracking-[.2em]">Curated short getaways</span>
-            </span>
-          </button>
+<main>
+<!-- HERO -->
+<section id="home" class="hero min-h-screen flex items-center text-white">
+<div class="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-32 pb-16">
+<div class="max-w-4xl">
+<span class="inline-flex px-4 py-2 rounded-full bg-white/10 border border-white/20 glass text-emerald-300 font-bold text-xs tracking-[.2em] uppercase">✦ Your next escape starts here</span>
+<h1 class="mt-7 text-5xl sm:text-7xl lg:text-8xl font-black leading-[.95] tracking-tight">Escape the routine.<span class="block text-emerald-300">Explore India.</span></h1>
+<p class="mt-6 text-lg sm:text-xl text-slate-200 max-w-2xl leading-relaxed">Discover beautiful beaches, mountains, heritage cities and hidden gems perfect for a 2–3 day adventure.</p>
+<div class="mt-8 flex flex-col sm:flex-row gap-3">
+<button onclick="go('explore')" class="ring px-7 py-4 rounded-2xl bg-emerald-400 text-slate-950 font-black hover:bg-emerald-300">Explore 18+ destinations →</button>
+<button onclick="go('dashboard')" class="ring px-7 py-4 rounded-2xl bg-white/10 border border-white/20 glass font-bold">Open my dashboard</button>
+</div>
+<div class="mt-12 grid grid-cols-3 max-w-2xl border-t border-white/20 pt-7">
+<div><b class="text-3xl sm:text-4xl">18+</b><small class="block text-slate-300 mt-1">destinations</small></div>
+<div class="border-x border-white/20 px-5"><b class="text-3xl sm:text-4xl">2–3</b><small class="block text-slate-300 mt-1">day trips</small></div>
+<div class="pl-5"><b class="text-3xl sm:text-4xl">4.8★</b><small class="block text-slate-300 mt-1">top rating</small></div>
+</div>
+</div>
+</div></section>
 
-          <nav class="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-200" aria-label="Primary navigation">
-            <button class="focus-ring hover:text-emerald-300" onclick="scrollToId('home')">Home</button>
-            <button class="focus-ring hover:text-emerald-300" onclick="scrollToId('destinations')">Destinations</button>
-            <button class="focus-ring hover:text-emerald-300" onclick="scrollToId('planner')">Trip Planner</button>
-            <button class="focus-ring hover:text-emerald-300" onclick="scrollToId('about')">About</button>
-          </nav>
+<!-- QUICK SEARCH -->
+<section class="relative -mt-12 z-10">
+<div class="max-w-6xl mx-auto px-4">
+<div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5">
+<div class="grid md:grid-cols-[1.4fr_1fr_1fr_auto] gap-3">
+<div class="relative"><span class="absolute left-4 top-3.5 text-slate-400">⌕</span><input id="search" oninput="render()" placeholder="Search destination..." class="ring w-full pl-11 p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none"></div>
+<select id="quickCat" onchange="render()" class="ring p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800"><option>All</option><option>Beach</option><option>Mountain</option><option>Nature</option><option>City</option><option>Heritage</option></select>
+<select id="quickDays" onchange="render()" class="ring p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800"><option>Any duration</option><option>2 Days</option><option>3 Days</option></select>
+<button onclick="go('explore')" class="ring px-6 py-3.5 rounded-xl bg-slate-950 dark:bg-emerald-400 text-white dark:text-slate-950 font-black">Search</button>
+</div></div></div></section>
 
-          <div class="hidden md:flex items-center gap-2">
-            <button id="themeBtn" class="focus-ring w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-white/20" aria-label="Toggle theme">☾</button>
-            <button onclick="openFavorites()" class="focus-ring relative w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-white/20" aria-label="Open favorites">
-              ♡
-              <span id="favCount" class="absolute -top-1 -right-1 hidden min-w-5 h-5 px-1 rounded-full bg-emerald-400 text-slate-950 text-[10px] font-black items-center justify-center">0</span>
-            </button>
-            <button onclick="scrollToId('destinations')" class="focus-ring px-5 py-2.5 rounded-xl bg-emerald-400 text-slate-950 font-extrabold hover:bg-emerald-300 transition">
-              Explore
-            </button>
-          </div>
+<!-- EXPLORE -->
+<section id="explore" class="py-24">
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+<div><p class="text-emerald-600 font-black text-sm uppercase tracking-widest">Curated for you</p><h2 class="text-4xl sm:text-5xl font-black mt-2">Popular escapes</h2><p class="text-slate-500 dark:text-slate-400 mt-3">Pick a place, save it, or open the full details.</p></div>
+<div class="flex flex-wrap gap-2" id="filters"></div>
+</div>
+<div id="count" class="mt-7 text-sm font-bold text-slate-500"></div>
+<div id="cards" class="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+<div id="empty" class="hidden text-center py-20"><div class="text-5xl">🧭</div><h3 class="text-2xl font-black mt-4">No match found</h3><button onclick="reset()" class="mt-5 bg-slate-950 text-white px-5 py-3 rounded-xl font-bold">Reset</button></div>
+</div></section>
 
-          <button id="menuBtn" class="md:hidden focus-ring w-11 h-11 rounded-xl bg-white/10 text-white text-xl" aria-label="Open menu" aria-expanded="false">
-            ☰
-          </button>
-        </div>
+<!-- DASHBOARD -->
+<section id="dashboard" class="py-24 bg-slate-100 dark:bg-slate-900/60">
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+<div><p class="text-emerald-600 font-black text-sm uppercase tracking-widest">Personal space</p><h2 class="text-4xl sm:text-5xl font-black mt-2">My Dashboard</h2><p class="text-slate-500 dark:text-slate-400 mt-2">Your saved destinations, plans and travel profile.</p></div>
+<button onclick="clearData()" class="ring px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">Reset data</button>
+</div>
 
-        <nav id="mobileMenu" class="hidden md:hidden pt-4 mt-3 border-t border-white/10 space-y-1" aria-label="Mobile navigation">
-          <button onclick="mobileNavigate('home')" class="w-full text-left px-3 py-3 rounded-xl text-slate-200 hover:bg-white/10">Home</button>
-          <button onclick="mobileNavigate('destinations')" class="w-full text-left px-3 py-3 rounded-xl text-slate-200 hover:bg-white/10">Destinations</button>
-          <button onclick="mobileNavigate('planner')" class="w-full text-left px-3 py-3 rounded-xl text-slate-200 hover:bg-white/10">Trip Planner</button>
-          <button onclick="mobileNavigate('about')" class="w-full text-left px-3 py-3 rounded-xl text-slate-200 hover:bg-white/10">About</button>
-        </nav>
-      </div>
-    </div>
-  </header>
+<div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700"><span class="text-2xl">♡</span><p class="text-slate-500 text-sm mt-3">Saved places</p><b id="statFav" class="text-3xl">0</b></div>
+<div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700"><span class="text-2xl">🧳</span><p class="text-slate-500 text-sm mt-3">Plans created</p><b id="statPlans" class="text-3xl">0</b></div>
+<div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700"><span class="text-2xl">⭐</span><p class="text-slate-500 text-sm mt-3">Average rating</p><b class="text-3xl">4.8</b></div>
+<div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700"><span class="text-2xl">🇮🇳</span><p class="text-slate-500 text-sm mt-3">Trips in India</p><b class="text-3xl">18+</b></div>
+</div>
 
-  <main id="main">
-    <!-- Hero -->
-    <section id="home" class="relative min-h-[92vh] flex items-center overflow-hidden bg-slate-950 text-white">
-      <img class="hero-bg absolute inset-0 w-full h-full object-cover opacity-70"
-           src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=2200&q=85"
-           alt="Lush waterfall surrounded by green nature"
-           fetchpriority="high" />
-      <div class="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/45 to-slate-950"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-slate-950/60"></div>
+<div class="mt-6 grid lg:grid-cols-[1fr_1.5fr] gap-6">
+<div class="bg-slate-950 text-white rounded-3xl p-7 relative overflow-hidden">
+<div class="absolute -right-12 -top-12 w-40 h-40 bg-emerald-400/20 rounded-full blur-2xl"></div>
+<div class="flex items-center gap-4"><div class="w-16 h-16 rounded-full bg-emerald-400 text-slate-950 grid place-items-center text-xl font-black">WE</div><div><h3 class="text-xl font-black">Weekend Explorer</h3><p class="text-slate-400 text-sm">Frontend Arena traveller profile</p></div></div>
+<div class="mt-8"><p class="text-slate-400 text-sm">Travel style</p><div class="flex flex-wrap gap-2 mt-3"><span class="px-3 py-2 rounded-full bg-white/10 text-sm">Nature</span><span class="px-3 py-2 rounded-full bg-white/10 text-sm">Food</span><span class="px-3 py-2 rounded-full bg-white/10 text-sm">Photography</span></div></div>
+<button onclick="showToast('Profile editor is frontend-only')" class="ring mt-7 w-full py-3 rounded-xl border border-white/15 hover:bg-white/10 font-bold">Edit profile</button>
+</div>
 
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-32 pb-16">
-        <div class="max-w-4xl fade-up">
-          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15 glass text-emerald-300 text-xs sm:text-sm font-bold uppercase tracking-widest">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Discover · Explore · Reconnect
-          </div>
+<div class="bg-white dark:bg-slate-800 rounded-3xl p-7 border border-slate-200 dark:border-slate-700">
+<div class="flex justify-between items-center"><h3 class="text-xl font-black">Saved destinations</h3><button onclick="go('explore')" class="text-emerald-600 font-bold text-sm">Explore more →</button></div>
+<div id="saved" class="mt-5 grid sm:grid-cols-2 gap-3"></div>
+</div></div>
 
-          <h1 class="mt-7 text-5xl sm:text-6xl lg:text-8xl font-black tracking-tight leading-[.98]">
-            Your next weekend
-            <span class="block text-emerald-300">starts here.</span>
-          </h1>
+<div class="mt-6 bg-white dark:bg-slate-800 rounded-3xl p-7 border border-slate-200 dark:border-slate-700">
+<div class="flex justify-between items-center"><h3 class="text-xl font-black">Recent trip plans</h3><button onclick="openPlanner()" class="text-emerald-600 font-bold text-sm">+ New plan</button></div>
+<div id="plans" class="mt-5 space-y-3"></div>
+</div>
+</div></section>
 
-          <p class="mt-6 max-w-2xl text-lg sm:text-xl text-slate-200 leading-relaxed">
-            Find beautiful Indian destinations, compare short getaways, save favorites and build a simple weekend plan.
-          </p>
+<!-- FEATURES -->
+<section class="py-24">
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+<div class="text-center"><p class="text-emerald-600 font-black text-sm uppercase tracking-widest">Why Weekend Escape</p><h2 class="text-4xl font-black mt-2">Built for a better weekend</h2></div>
+<div class="grid md:grid-cols-3 gap-6 mt-12">
+<div class="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"><div class="text-3xl">⚡</div><h3 class="text-xl font-black mt-5">Instant discovery</h3><p class="mt-2 text-slate-500">Search and filter destinations instantly with a smooth single-page experience.</p></div>
+<div class="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"><div class="text-3xl">♥</div><h3 class="text-xl font-black mt-5">Save your favourites</h3><p class="mt-2 text-slate-500">Keep favourite places and plans in your browser using LocalStorage.</p></div>
+<div class="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"><div class="text-3xl">📱</div><h3 class="text-xl font-black mt-5">Responsive everywhere</h3><p class="mt-2 text-slate-500">Designed for mobile, tablet and desktop with accessible controls.</p></div>
+</div></div></section>
 
-          <div class="mt-9 flex flex-col sm:flex-row gap-3">
-            <button onclick="scrollToId('destinations')" class="focus-ring px-7 py-4 rounded-2xl bg-emerald-400 text-slate-950 font-black hover:bg-emerald-300 hover:-translate-y-0.5 transition shadow-xl">
-              Explore destinations →
-            </button>
-            <button onclick="scrollToId('planner')" class="focus-ring px-7 py-4 rounded-2xl bg-white/10 border border-white/20 glass text-white font-bold hover:bg-white/20 transition">
-              Plan my weekend
-            </button>
-          </div>
+<!-- ABOUT -->
+<section id="about" class="py-24 bg-slate-950 text-white">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-12 items-center">
+<div><p class="text-emerald-300 font-black text-sm uppercase tracking-widest">Frontend Arena</p><h2 class="text-4xl sm:text-5xl font-black mt-3">A complete frontend prototype.</h2><p class="mt-5 text-slate-400 leading-relaxed">Weekend Escape demonstrates modern UI/UX, responsive design, interactivity, client-side state, dashboard views and accessibility in a single frontend application.</p></div>
+<div class="grid grid-cols-2 gap-3">
+<div class="p-5 rounded-2xl bg-white/5 border border-white/10"><b class="text-emerald-300">18+</b><p class="text-sm text-slate-400 mt-1">Indian places</p></div>
+<div class="p-5 rounded-2xl bg-white/5 border border-white/10"><b class="text-emerald-300">5</b><p class="text-sm text-slate-400 mt-1">categories</p></div>
+<div class="p-5 rounded-2xl bg-white/5 border border-white/10"><b class="text-emerald-300">100%</b><p class="text-sm text-slate-400 mt-1">frontend</p></div>
+<div class="p-5 rounded-2xl bg-white/5 border border-white/10"><b class="text-emerald-300">0</b><p class="text-sm text-slate-400 mt-1">backend required</p></div>
+</div></div></section>
+</main>
 
-          <div class="mt-12 grid grid-cols-3 max-w-2xl border-t border-white/20 pt-7">
-            <div>
-              <strong class="block text-3xl sm:text-4xl">50+</strong>
-              <span class="text-sm text-slate-300">destinations</span>
-            </div>
-            <div class="border-x border-white/20 px-5">
-              <strong class="block text-3xl sm:text-4xl">2–3</strong>
-              <span class="text-sm text-slate-300">day escapes</span>
-            </div>
-            <div class="pl-5">
-              <strong class="block text-3xl sm:text-4xl">4.8★</strong>
-              <span class="text-sm text-slate-300">top rating</span>
-            </div>
-          </div>
-        </div>
-      </div>
+<footer class="bg-slate-950 border-t border-white/10 text-slate-400 py-8"><div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between gap-3"><b class="text-white">Weekend Escape</b><span>Frontend Arena Hackathon • Frontend-only prototype</span></div></footer>
 
-      <button onclick="scrollToId('destinations')" aria-label="Scroll to destinations"
-        class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/60 hover:text-white transition text-xs uppercase tracking-widest">
-        Scroll ↓
-      </button>
-    </section>
+<!-- MODAL -->
+<div id="modal" class="hidden fixed inset-0 z-[80] bg-slate-950/75 p-4 items-center justify-center" role="dialog" aria-modal="true">
+<div class="bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-auto shadow-2xl">
+<div class="relative"><img id="mImg" class="w-full h-56 sm:h-72 object-cover" alt=""><button onclick="closeModal()" class="ring absolute top-4 right-4 w-11 h-11 rounded-full bg-slate-950/80 text-white text-xl">×</button></div>
+<div class="p-6 sm:p-8"><span id="mCat" class="text-emerald-600 font-black text-sm"></span><h2 id="mTitle" class="text-4xl font-black mt-1"></h2><p id="mLoc" class="text-slate-500 mt-1"></p><div class="mt-4 flex gap-3 flex-wrap"><span id="mRate" class="px-3 py-2 rounded-xl bg-amber-50 text-amber-700 font-black"></span><span id="mPrice" class="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 font-black"></span><span id="mDays" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold"></span></div><p id="mDesc" class="mt-6 leading-relaxed text-slate-600 dark:text-slate-300"></p><div id="mTags" class="mt-5 flex flex-wrap gap-2"></div><div class="mt-7 grid sm:grid-cols-2 gap-3"><button id="mFav" class="ring py-3.5 rounded-xl bg-slate-950 text-white font-black"></button><button onclick="openPlanner()" class="ring py-3.5 rounded-xl bg-emerald-400 text-slate-950 font-black">Plan this trip →</button></div></div>
+</div></div>
 
-    <!-- Search / Filters -->
-    <section id="destinations" class="py-20 sm:py-24">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-7">
-          <div>
-            <p class="text-emerald-600 font-black text-sm uppercase tracking-widest">Handpicked escapes</p>
-            <h2 class="mt-2 text-4xl sm:text-5xl font-black tracking-tight">Where will you go?</h2>
-            <p class="mt-3 text-slate-600 max-w-2xl">Search, filter and compare destinations without leaving the page.</p>
-          </div>
+<!-- PLANNER -->
+<div id="planner" class="hidden fixed inset-0 z-[90] bg-slate-950/75 p-4 items-center justify-center">
+<div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 text-slate-900 dark:text-white">
+<div class="flex justify-between"><div><p class="text-emerald-600 font-black text-sm">TRIP PLANNER</p><h2 class="text-3xl font-black mt-1">Build your weekend</h2></div><button onclick="closePlanner()" class="ring w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800">×</button></div>
+<form onsubmit="makePlan(event)" class="mt-7 space-y-4">
+<select id="pDest" required class="ring w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800"></select>
+<select id="pDays" class="ring w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800"><option>2 Days</option><option>3 Days</option></select>
+<select id="pStyle" class="ring w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800"><option>Nature & Relax</option><option>Adventure</option><option>Culture & Food</option><option>Photography</option></select>
+<input id="pBudget" type="range" min="3000" max="15000" step="500" value="7500" class="w-full accent-emerald-500">
+<div class="flex justify-between text-sm text-slate-500"><span>Budget</span><b id="budget">₹7,500</b></div>
+<button class="ring w-full py-4 rounded-xl bg-emerald-400 text-slate-950 font-black">Save trip plan ✨</button>
+</form></div></div>
 
-          <div class="w-full lg:w-[380px]">
-            <label for="search" class="sr-only">Search destinations</label>
-            <div class="relative">
-              <input id="search" type="search" placeholder="Search Munnar, Goa, beach..."
-                class="focus-ring w-full pl-11 pr-4 py-4 rounded-2xl border border-slate-200 bg-white shadow-sm outline-none"
-                autocomplete="off" />
-              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
-            </div>
-          </div>
-        </div>
+<div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] bg-slate-950 text-white px-5 py-3 rounded-xl font-bold shadow-2xl"></div>
 
-        <div class="mt-7 flex flex-wrap gap-2" role="group" aria-label="Destination categories">
-          <button data-filter="All" class="filter-btn active focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-slate-950 text-white">All</button>
-          <button data-filter="Beach" class="filter-btn focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-white border border-slate-200">Beach</button>
-          <button data-filter="Mountain" class="filter-btn focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-white border border-slate-200">Mountain</button>
-          <button data-filter="Nature" class="filter-btn focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-white border border-slate-200">Nature</button>
-          <button data-filter="City" class="filter-btn focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-white border border-slate-200">City</button>
-        </div>
-
-        <div id="resultInfo" class="mt-7 text-sm text-slate-500 font-semibold" aria-live="polite"></div>
-        <div id="cards" class="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-
-        <div id="emptyState" class="hidden text-center py-20">
-          <div class="text-5xl">🧭</div>
-          <h3 class="mt-4 text-2xl font-black">No destinations found</h3>
-          <p class="mt-2 text-slate-500">Try another search or category.</p>
-          <button onclick="resetFilters()" class="mt-5 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold">Reset filters</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Planner -->
-    <section id="planner" class="py-20 bg-slate-900 text-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start">
-          <div>
-            <p class="text-emerald-300 font-black text-sm uppercase tracking-widest">Mini trip planner</p>
-            <h2 class="mt-3 text-4xl sm:text-5xl font-black">Build your weekend.</h2>
-            <p class="mt-5 text-slate-300 leading-relaxed">
-              Select a destination, travel style and duration. Your plan is saved locally in your browser — no backend required.
-            </p>
-
-            <div class="mt-8 grid grid-cols-3 gap-3">
-              <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
-                <div class="text-2xl">🔎</div>
-                <p class="mt-2 font-bold text-sm">Discover</p>
-              </div>
-              <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
-                <div class="text-2xl">♡</div>
-                <p class="mt-2 font-bold text-sm">Save</p>
-              </div>
-              <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
-                <div class="text-2xl">✓</div>
-                <p class="mt-2 font-bold text-sm">Plan</p>
-              </div>
-            </div>
-          </div>
-
-          <form id="plannerForm" class="bg-white text-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl">
-            <div class="grid sm:grid-cols-2 gap-5">
-              <div class="sm:col-span-2">
-                <label for="planDestination" class="block text-sm font-extrabold mb-2">Destination</label>
-                <select id="planDestination" required class="focus-ring w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50">
-                  <option value="">Choose a destination</option>
-                </select>
-              </div>
-              <div>
-                <label for="planDays" class="block text-sm font-extrabold mb-2">Duration</label>
-                <select id="planDays" class="focus-ring w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50">
-                  <option>2 Days</option>
-                  <option>3 Days</option>
-                </select>
-              </div>
-              <div>
-                <label for="planStyle" class="block text-sm font-extrabold mb-2">Travel style</label>
-                <select id="planStyle" class="focus-ring w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50">
-                  <option>Nature & Relax</option>
-                  <option>Adventure</option>
-                  <option>Culture & Food</option>
-                  <option>Photography</option>
-                </select>
-              </div>
-              <div class="sm:col-span-2">
-                <label for="planBudget" class="block text-sm font-extrabold mb-2">Budget per person: <span id="budgetValue">₹7,500</span></label>
-                <input id="planBudget" type="range" min="3000" max="15000" step="500" value="7500" class="w-full accent-emerald-500" />
-                <div class="flex justify-between text-xs text-slate-500 mt-1"><span>₹3k</span><span>₹15k</span></div>
-              </div>
-            </div>
-            <button class="focus-ring mt-6 w-full py-4 rounded-xl bg-emerald-400 text-slate-950 font-black hover:bg-emerald-300 transition">
-              Generate my plan ✨
-            </button>
-            <div id="planOutput" class="hidden mt-5 rounded-2xl bg-slate-50 border border-slate-200 p-5" aria-live="polite"></div>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- Features -->
-    <section class="py-20 sm:py-24">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-2xl mx-auto">
-          <p class="text-emerald-600 font-black text-sm uppercase tracking-widest">Designed for real users</p>
-          <h2 class="mt-3 text-4xl font-black">Simple, useful, interactive.</h2>
-        </div>
-        <div class="mt-12 grid md:grid-cols-3 gap-6">
-          <article class="bg-white border border-slate-200 rounded-3xl p-7 shadow-soft">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-100 grid place-items-center text-2xl">⚡</div>
-            <h3 class="mt-5 text-xl font-black">Fast interactions</h3>
-            <p class="mt-2 text-slate-600 leading-relaxed">Client-side filtering, favorites, search, modal details and trip planning work instantly.</p>
-          </article>
-          <article class="bg-white border border-slate-200 rounded-3xl p-7 shadow-soft">
-            <div class="w-12 h-12 rounded-2xl bg-blue-100 grid place-items-center text-2xl">📱</div>
-            <h3 class="mt-5 text-xl font-black">Responsive by default</h3>
-            <p class="mt-2 text-slate-600 leading-relaxed">Layouts adapt across mobile, tablet and desktop with touch-friendly controls.</p>
-          </article>
-          <article class="bg-white border border-slate-200 rounded-3xl p-7 shadow-soft">
-            <div class="w-12 h-12 rounded-2xl bg-violet-100 grid place-items-center text-2xl">♿</div>
-            <h3 class="mt-5 text-xl font-black">Accessible UI</h3>
-            <p class="mt-2 text-slate-600 leading-relaxed">Semantic landmarks, labels, focus states, keyboard-friendly dialogs and reduced-motion support.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- About / Documentation -->
-    <section id="about" class="py-20 bg-slate-100">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-10">
-          <div>
-            <p class="text-emerald-600 font-black text-sm uppercase tracking-widest">About the project</p>
-            <h2 class="mt-3 text-4xl sm:text-5xl font-black">Weekend Escape</h2>
-            <p class="mt-5 text-slate-600 leading-relaxed">
-              A frontend-only hackathon prototype focused on discovering short Indian getaways.
-              It demonstrates responsive UI, meaningful interactions, client-side state and accessible design without requiring a server.
-            </p>
-            <div class="mt-7 flex flex-wrap gap-2">
-              <span class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm font-bold">HTML5</span>
-              <span class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm font-bold">Tailwind CSS</span>
-              <span class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm font-bold">JavaScript</span>
-              <span class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm font-bold">LocalStorage</span>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
-            <h3 class="text-xl font-black">Frontend implementation</h3>
-            <ul class="mt-5 space-y-4 text-slate-600">
-              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Reusable destination data rendered through JavaScript.</span></li>
-              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Single-page navigation and responsive mobile menu.</span></li>
-              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Search and category filtering with live result count.</span></li>
-              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Favorites and theme preference persisted with LocalStorage.</span></li>
-              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Interactive destination details and trip planner.</span></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Footer -->
-  <footer class="bg-slate-950 text-slate-300 py-10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between gap-4">
-      <div>
-        <div class="text-white font-black text-lg">Weekend Escape</div>
-        <p class="text-sm mt-1">Frontend Arena Hackathon Prototype</p>
-      </div>
-      <p class="text-sm">Built with responsive UI, accessibility & client-side interactions.</p>
-    </div>
-  </footer>
-
-  <!-- Destination Modal -->
-  <div id="modal" class="hidden fixed inset-0 z-[80] bg-slate-950/70 p-4 sm:p-8 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div id="modalPanel" class="relative bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-auto shadow-2xl">
-      <button id="closeModal" class="focus-ring absolute right-4 top-4 z-10 w-11 h-11 rounded-full bg-slate-950/80 text-white text-xl" aria-label="Close dialog">×</button>
-      <img id="modalImage" class="w-full h-56
+<script>
+const places=[
+["munnar","Munnar","Kerala","Mountain","Misty tea gardens, cool hills and peaceful nature walks.","https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=1000&q=85",5500,"2 Days",4.8,["Tea Gardens","Mountain Views","Nature Walks"]],
+["goa","Goa","Goa","Beach","Sun-kissed beaches, cafes, water sports and unforgettable sunsets.","https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1000&q=85",8500,"3 Days",4.7,["Beaches","Sunset","Water Sports"]],
+["jaipur","Jaipur","Rajasthan","Heritage","Royal forts, palaces, colourful bazaars and legendary food.","https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1000&q=85",7500,"3 Days",4.6,["Amber Fort","Hawa Mahal","Bazaars"]],
+["coorg","Coorg","Karnataka","Nature","Coffee estates, misty valleys and beautiful waterfalls.","https://images.unsplash.com/photo-1588714477688-cf28a50e94f7?auto=format&fit=crop&w=1000&q=85",6000,"2 Days",4.8,["Coffee Estate","Abbey Falls","Forest"]],
+["pondicherry","Pondicherry","Tamil Nadu","Beach","French-quarter charm, cafes, beaches and coastal sunsets.","https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1000&q=85",5000,"2 Days",4.7,["White Town","Promenade","Cafes"]],
+["ooty","Ooty","Tamil Nadu","Mountain","Cool weather, pine forests, gardens and the toy train.","https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=85",4500,"2 Days",4.7,["Toy Train","Gardens","Viewpoints"]],
+["manali","Manali","Himachal Pradesh","Mountain","Snowy peaks, valleys, rivers and adventurous mountain roads.","https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=85",9000,"3 Days",4.8,["Solang Valley","River","Snow"]],
+["rishikesh","Rishikesh","Uttarakhand","Nature","Ganga views, yoga, rafting and thrilling outdoor adventures.","https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1000&q=85",6500,"2 Days",4.7,["Rafting","Ganga","Yoga"]],
+["alleppey","Alleppey","Kerala","Nature","Serene backwaters, houseboats and tropical village life.","https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1000&q=85",7000,"2 Days",4.8,["Backwaters","Houseboat","Sunset"]],
+["darjeeling","Darjeeling","West Bengal","Mountain","Tea gardens, Himalayan views and a charming hill railway.","https://images.unsplash.com/photo-1544634076-a90160ddf8e9?auto=format&fit=crop&w=1000&q=85",8000,"3 Days",4.7,["Tiger Hill","Tea Gardens","Toy Train"]],
+["udaipur","Udaipur","Rajasthan","Heritage","Lakes, royal architecture, rooftop cafes and romantic sunsets.","https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1000&q=85",7800,"3 Days",4.7,["City Palace","Lake Pichola","Bazaars"]],
+["varanasi","Varanasi","Uttar Pradesh","Heritage","Ancient ghats, spiritual traditions, temples and Ganga aarti.","https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1000&q=85",6000,"2 Days",4.6,["Ghats","Aarti","Old City"]],
+["andaman","Andaman","Andaman & Nicobar","Beach","Turquoise water, coral reefs, island beaches and diving.","https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1000&q=85",12000,"3 Days",4.9,["Scuba Diving","Islands","Beaches"]],
+["shimla","Shimla","Himachal Pradesh","Mountain","Colonial streets, Himalayan views and cozy hill escapes.","https://images.unsplash.com/photo-1597074866923-dc0589150358?auto=format&
