@@ -1,777 +1,352 @@
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weekend Escape — Your Next Weekend Adventure Starts Here</title>
-  <meta name="description" content="Discover beautiful destinations, hidden gems, and unforgettable 2-3 day weekend escapes." />
-  
-  <!-- Tailwind CSS CDN -->
+  <meta name="description" content="Weekend Escape — discover curated 2–3 day adventures across India." />
+  <meta name="theme-color" content="#07111f" />
+  <title>Weekend Escape | Frontend Arena</title>
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- React 18 & ReactDOM -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  
-  <!-- Babel for JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
+          },
+          boxShadow: {
+            soft: "0 18px 50px rgba(15, 23, 42, .10)"
+          }
+        }
+      }
+    };
+  </script>
 
   <style>
-    body {
-      background-color: #FAF8F5;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    .hero-bg { animation: zoom 18s ease-in-out infinite alternate; }
+    @keyframes zoom {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
     }
-
-    /* Cinematic Ken Burns Background Image Animation */
-    @keyframes kenBurnsHero {
-      0% {
-        transform: scale(1) translate(0%, 0%);
-      }
-      50% {
-        transform: scale(1.08) translate(-1.2%, -1%);
-      }
-      100% {
-        transform: scale(1.03) translate(1%, 0.5%);
-      }
+    .fade-up { animation: fadeUp .65s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
-    .animate-hero-bg {
-      animation: kenBurnsHero 24s ease-in-out infinite alternate;
-      will-change: transform;
-      transform-origin: center center;
+    .card-img { transition: transform .5s ease; }
+    .destination-card:hover .card-img { transform: scale(1.07); }
+    .glass { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    .focus-ring:focus-visible {
+      outline: 3px solid #34d399;
+      outline-offset: 3px;
     }
-
-    .hero-ambient-glow {
-      background: conic-gradient(from 90deg at 50% 50%, transparent, rgba(110, 231, 183, .16), transparent 28%, rgba(45, 212, 191, .13), transparent 58%);
-      animation: ambientRotation 26s linear infinite;
-      pointer-events: none;
-    }
-
-    @keyframes ambientRotation {
-      to { transform: rotate(360deg); }
-    }
-
-    .skip-link {
-      position: absolute;
-      left: 1rem;
-      top: -4rem;
-      z-index: 100;
-      border-radius: .75rem;
-      background: #022c22;
-      color: white;
-      padding: .75rem 1rem;
-      font-weight: 700;
-      transition: top .2s ease;
-    }
-
-    .skip-link:focus { top: 1rem; }
-
-    /* Accessibility: Respect reduced motion preference */
     @media (prefers-reduced-motion: reduce) {
-      .animate-hero-bg {
-        animation: none !important;
-        transform: scale(1.02) !important;
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
       }
-
-      .hero-ambient-glow { animation: none !important; }
     }
   </style>
 </head>
-<body class="text-stone-900 antialiased selection:bg-emerald-200 selection:text-emerald-900">
-  <a class="skip-link" href="#main-content">Skip to destinations</a>
-  <div id="root"></div>
 
-  <script type="text/babel">
-    const { useState, useMemo, useEffect, useRef, useCallback } = React;
+<body class="bg-slate-50 text-slate-900 antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:z-[100] focus:top-3 focus:left-3 focus:bg-slate-950 focus:text-white focus:px-4 focus:py-3 focus:rounded-xl">
+    Skip to main content
+  </a>
 
-    // --- Mock Data: Exact 6 Destinations from Challenge Brief ---
-    const destinations = [
-      {
-        id: 'munnar',
-        name: 'Munnar',
-        location: 'Kerala, India',
-        category: 'Mountain',
-        description: 'Misty hills, tea plantations and peaceful weekend escapes.',
-        detailedDescription: 'Nestled high in the Western Ghats of Kerala, Munnar is legendary for its sprawling tea estates, rolling green slopes, winding roads, and crisp mountain breeze. It is the premier retreat for nature walks, aromatic spice visits, and spotting the endangered Nilgiri Tahr.',
-        image: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=1000&q=80',
-        price: 5500,
-        duration: '2 Days',
-        rating: 4.8,
-        reviewsCount: 1420,
-        highlights: ['Tea Gardens', 'Mountain Views', 'Nature Walks'],
-        bestTimeToVisit: 'September – March',
-      },
-      {
-        id: 'goa',
-        name: 'Goa',
-        location: 'Goa, India',
-        category: 'Beach',
-        description: 'Sun-kissed beaches, coastal cafes, and vibrant golden hour vibes.',
-        detailedDescription: 'Discover breezy palm-lined coastlines, colonial heritage, and vibrant seaside shacks. Whether unwinding on pristine white sands or enjoying sunset cruises, Goa delivers the quintessential coastal recharge.',
-        image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1000&q=80',
-        price: 8500,
-        duration: '3 Days',
-        rating: 4.7,
-        reviewsCount: 2890,
-        highlights: ['Sunset Cruises', 'Beachside Cafes', 'Water Sports'],
-        bestTimeToVisit: 'November – April',
-      },
-      {
-        id: 'jaipur',
-        name: 'Jaipur',
-        location: 'Rajasthan, India',
-        category: 'City',
-        description: 'Royal palaces, historic forts, and lively traditional bazaars.',
-        detailedDescription: 'The vibrant Pink City offers a regal weekend journey through grand UNESCO hilltop forts, ornate palaces, colorful artisan markets, and world-renowned Rajasthani culinary traditions.',
-        image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1000&q=80',
-        price: 7500,
-        duration: '3 Days',
-        rating: 4.6,
-        reviewsCount: 3150,
-        highlights: ['Amber Fort Tour', 'Hawa Mahal', 'Handicraft Bazaars'],
-        bestTimeToVisit: 'October – March',
-      },
-      {
-        id: 'coorg',
-        name: 'Coorg',
-        location: 'Karnataka, India',
-        category: 'Nature',
-        description: 'Aromatic coffee estates, lush rainforests, and tranquil waterfalls.',
-        detailedDescription: 'Widely dubbed the "Scotland of India", Coorg enchants weekenders with emerald coffee plantations, misty valleys, cascading Abbey Falls, and cozy plantation homestays surrounded by birdsong and fresh mountain air.',
-        image: 'https://images.unsplash.com/photo-1588714477688-cf28a50e94f7?auto=format&fit=crop&w=1000&q=80',
-        price: 6000,
-        duration: '2 Days',
-        rating: 4.8,
-        reviewsCount: 1980,
-        highlights: ['Coffee Plantation Walk', 'Abbey Falls', 'Forest Trails'],
-        bestTimeToVisit: 'October – April',
-      },
-      {
-        id: 'pondicherry',
-        name: 'Pondicherry',
-        location: 'Tamil Nadu, India',
-        category: 'Beach',
-        description: 'French quarter charm, pastel streets, and serene promenade sunsets.',
-        detailedDescription: 'A picturesque coastal getaway merging French colonial architecture with coastal Indian charm. Cycle past mustard-yellow villas in White Town, discover tranquil beaches, savor French patisseries, and watch glowing sunrises over the Bay of Bengal.',
-        image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1000&q=80',
-        price: 5000,
-        duration: '2 Days',
-        rating: 4.7,
-        reviewsCount: 1650,
-        highlights: ['French Quarter Promenade', 'Serene Beaches', 'Artisan Bakeries'],
-        bestTimeToVisit: 'October – March',
-      },
-      {
-        id: 'ooty',
-        name: 'Ooty',
-        location: 'Tamil Nadu, India',
-        category: 'Mountain',
-        description: 'Chilly pine forests, heritage toy train, and panoramic valley lookouts.',
-        detailedDescription: 'Perched 2,240 meters above sea level in the Nilgiri Hills, Ooty treats travelers to crisp highland breezes, pine forests, manicured rose gardens, and a nostalgic ride on the UNESCO-listed Nilgiri Mountain Railway.',
-        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80',
-        price: 4500,
-        duration: '2 Days',
-        rating: 4.7,
-        reviewsCount: 2110,
-        highlights: ['Nilgiri Toy Train', 'Botanical Gardens', 'Valley Viewpoints'],
-        bestTimeToVisit: 'All Year Round',
-      },
-    ];
+  <!-- Header -->
+  <header id="header" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div id="navShell" class="glass bg-slate-950/85 border border-white/10 rounded-2xl px-4 sm:px-5 py-3 shadow-lg">
+        <div class="flex items-center justify-between gap-4">
+          <button onclick="scrollToId('home')" class="focus-ring flex items-center gap-3 text-left" aria-label="Weekend Escape home">
+            <span class="grid place-items-center w-11 h-11 rounded-xl bg-emerald-400 text-slate-950 font-black shadow-lg">WE</span>
+            <span>
+              <span class="block text-white font-extrabold text-lg leading-tight">Weekend Escape</span>
+              <span class="block text-slate-300 text-[10px] uppercase tracking-[.2em]">Curated short getaways</span>
+            </span>
+          </button>
 
-    const CATEGORIES = ['All', 'Beach', 'Mountain', 'Nature', 'City'];
+          <nav class="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-200" aria-label="Primary navigation">
+            <button class="focus-ring hover:text-emerald-300" onclick="scrollToId('home')">Home</button>
+            <button class="focus-ring hover:text-emerald-300" onclick="scrollToId('destinations')">Destinations</button>
+            <button class="focus-ring hover:text-emerald-300" onclick="scrollToId('planner')">Trip Planner</button>
+            <button class="focus-ring hover:text-emerald-300" onclick="scrollToId('about')">About</button>
+          </nav>
 
-    // --- Header ---
-    function Header({ onExploreClick, selectedCount }) {
-      const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-      const [scrolled, setScrolled] = useState(false);
-
-      useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 40);
-        window.addEventListener('scroll', onScroll, { passive: true });
-        return () => window.removeEventListener('scroll', onScroll);
-      }, []);
-
-      const scrollTo = (id) => {
-        setMobileMenuOpen(false);
-        if (id === 'home' || id === 'top') {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
-        }
-        const el = document.getElementById(id);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      };
-
-      return (
-        <header
-          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-            scrolled
-              ? 'bg-stone-950/85 backdrop-blur-md shadow-xl py-3.5 border-b border-white/10'
-              : 'bg-gradient-to-b from-black/70 via-black/30 to-transparent py-5'
-          }`}
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              {/* Brand */}
-              <button
-                type="button"
-                onClick={() => scrollTo('top')}
-                className="flex items-center gap-2.5 text-left focus:outline-none cursor-pointer group"
-                aria-label="Weekend Escape - Home"
-              >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/30 group-hover:scale-105 transition-transform">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                  </svg>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-bold text-xl sm:text-2xl tracking-tight text-white group-hover:text-emerald-300 transition-colors leading-none">
-                    Weekend Escape
-                  </span>
-                  <span className="text-[11px] font-medium text-stone-300 tracking-wider uppercase mt-0.5">
-                    Curated Short Getaways
-                  </span>
-                </div>
-              </button>
-
-              {/* Navigation Links */}
-              <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-200">
-                <button type="button" onClick={() => scrollTo('top')} className="hover:text-white transition-colors cursor-pointer py-1">
-                  Home
-                </button>
-                <button type="button" onClick={() => scrollTo('destinations')} className="hover:text-white transition-colors cursor-pointer py-1">
-                  Destinations
-                </button>
-                <button type="button" onClick={() => scrollTo('about')} className="hover:text-white transition-colors cursor-pointer py-1">
-                  About
-                </button>
-              </nav>
-
-              {/* Action Button */}
-              <div className="hidden md:flex items-center gap-4">
-                {selectedCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    1 Selected
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={onExploreClick}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-bold text-stone-950 bg-white hover:bg-emerald-300 hover:text-stone-950 transition-all duration-200 shadow-md cursor-pointer active:scale-95"
-                >
-                  <span>Explore →</span>
-                </button>
-              </div>
-
-              {/* Mobile Hamburger Toggle */}
-              <div className="md:hidden flex items-center">
-                <button
-                  type="button"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  aria-label="Toggle navigation menu"
-                  className="p-2 rounded-xl text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                >
-                  {mobileMenuOpen ? (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  ) : (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
+          <div class="hidden md:flex items-center gap-2">
+            <button id="themeBtn" class="focus-ring w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-white/20" aria-label="Toggle theme">☾</button>
+            <button onclick="openFavorites()" class="focus-ring relative w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-white/20" aria-label="Open favorites">
+              ♡
+              <span id="favCount" class="absolute -top-1 -right-1 hidden min-w-5 h-5 px-1 rounded-full bg-emerald-400 text-slate-950 text-[10px] font-black items-center justify-center">0</span>
+            </button>
+            <button onclick="scrollToId('destinations')" class="focus-ring px-5 py-2.5 rounded-xl bg-emerald-400 text-slate-950 font-extrabold hover:bg-emerald-300 transition">
+              Explore
+            </button>
           </div>
 
-          {/* Mobile Drawer */}
-          {mobileMenuOpen && (
-            <div className="md:hidden mt-3 mx-4 rounded-2xl bg-stone-950/95 backdrop-blur-xl border border-white/15 p-5 shadow-2xl space-y-4">
-              <nav className="flex flex-col space-y-2 text-base font-medium text-stone-200">
-                <button type="button" onClick={() => scrollTo('top')} className="text-left px-3 py-2 rounded-xl hover:bg-white/10 hover:text-white">
-                  Home
-                </button>
-                <button type="button" onClick={() => scrollTo('destinations')} className="text-left px-3 py-2 rounded-xl hover:bg-white/10 hover:text-white">
-                  Destinations
-                </button>
-                <button type="button" onClick={() => scrollTo('about')} className="text-left px-3 py-2 rounded-xl hover:bg-white/10 hover:text-white">
-                  About
-                </button>
-              </nav>
-              <div className="pt-2 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => { setMobileMenuOpen(false); onExploreClick(); }}
-                  className="w-full text-center py-3 rounded-xl text-sm font-bold text-stone-950 bg-emerald-400 hover:bg-emerald-300 transition-colors cursor-pointer"
-                >
-                  Explore destinations →
-                </button>
-              </div>
-            </div>
-          )}
-        </header>
-      );
-    }
+          <button id="menuBtn" class="md:hidden focus-ring w-11 h-11 rounded-xl bg-white/10 text-white text-xl" aria-label="Open menu" aria-expanded="false">
+            ☰
+          </button>
+        </div>
 
-    // --- Hero with Animated Background Image ---
-    function Hero({ onExploreClick }) {
-      return (
-        <section
-          id="top"
-          className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-stone-950 text-white"
-        >
-          {/* Animated Background Image Wrapper */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <img
-              src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=2200&q=88"
-              alt="Waterfall flowing through a lush green cave landscape"
-              fetchPriority="high"
-              className="absolute inset-0 w-full h-full object-cover object-center animate-hero-bg scale-105"
-            />
+        <nav id="mobileMenu" class="hidden md:hidden pt-4 mt-3 border-t border-white/10 space-y-1" aria-label="Mobile navigation">
+          <button onclick="mobileNavigate('home')" class="w-full text-left px-3 py-3 rounded-xl text-slate-200 hover:bg-white/10">Home</button>
+          <button onclick="mobileNavigate('destinations')" class="w-full text-left px-3 py-3 rounded-xl text-slate-200 hover:bg-white/10">Destinations</button>
+          <button onclick="mobileNavigate('planner')" class="w-full text-left px-3 py-3 rounded-xl text-slate-200 hover:bg-white/10">Trip Planner</button>
+          <button onclick="mobileNavigate('about')" class="w-full text-left px-3 py-3 rounded-xl text-slate-200 hover:bg-white/10">About</button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section id="home" class="relative min-h-[92vh] flex items-center overflow-hidden bg-slate-950 text-white">
+      <img class="hero-bg absolute inset-0 w-full h-full object-cover opacity-70"
+           src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=2200&q=85"
+           alt="Lush waterfall surrounded by green nature"
+           fetchpriority="high" />
+      <div class="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/45 to-slate-950"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-slate-950/60"></div>
+
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-32 pb-16">
+        <div class="max-w-4xl fade-up">
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15 glass text-emerald-300 text-xs sm:text-sm font-bold uppercase tracking-widest">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Discover · Explore · Reconnect
           </div>
 
-          {/* Dark Transparent Gradients for Pristine Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/60 to-stone-950/45 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-r from-stone-950/75 via-transparent to-stone-950/75 pointer-events-none" />
-          <div className="absolute -inset-1/3 hero-ambient-glow opacity-70" aria-hidden="true" />
+          <h1 class="mt-7 text-5xl sm:text-6xl lg:text-8xl font-black tracking-tight leading-[.98]">
+            Your next weekend
+            <span class="block text-emerald-300">starts here.</span>
+          </h1>
 
-          {/* Hero Content */}
-          <div className="relative z-10 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 text-center pt-28 pb-16 sm:py-36 flex flex-col items-center">
-            {/* Eyebrow Pill */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>DISCOVER · EXPLORE · RECONNECT</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.08] mb-6 max-w-4xl text-balance drop-shadow-md">
-              Your next weekend adventure{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-emerald-400">
-                starts here.
-              </span>
-            </h1>
-
-            {/* Description */}
-            <p className="text-lg sm:text-xl md:text-2xl text-stone-200 leading-relaxed max-w-3xl mb-10 font-normal text-pretty">
-              Discover beautiful destinations, hidden gems, and unforgettable experiences perfect for a short escape.
-            </p>
-
-            {/* Action Button */}
-            <div className="mb-16 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button
-                type="button"
-                onClick={onExploreClick}
-                className="group inline-flex items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 rounded-full text-base sm:text-lg font-bold text-stone-950 bg-emerald-400 hover:bg-emerald-300 transition-all duration-300 shadow-xl shadow-emerald-500/20 hover:shadow-2xl hover:scale-105 active:scale-98 cursor-pointer"
-              >
-                <span>Explore destinations →</span>
-              </button>
-
-              <a
-                href="#about"
-                className="inline-flex items-center justify-center px-6 py-4 rounded-full text-base font-semibold text-stone-200 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                How it works ↓
-              </a>
-            </div>
-
-            {/* Three Statistics */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-12 w-full max-w-2xl pt-8 border-t border-white/20">
-              <div className="flex flex-col items-center">
-                <span className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">50+</span>
-                <span className="text-xs sm:text-sm font-medium text-stone-300 mt-1">destinations</span>
-              </div>
-              <div className="flex flex-col items-center border-x border-white/20 px-2">
-                <span className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">2–3 day</span>
-                <span className="text-xs sm:text-sm font-medium text-stone-300 mt-1">getaways</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">Curated</span>
-                <span className="text-xs sm:text-sm font-medium text-stone-300 mt-1">for you</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Floating Scroll Indicator */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/50 pointer-events-none">
-            <span className="text-[10px] font-semibold tracking-wider uppercase">Scroll to explore</span>
-            <svg className="w-4 h-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-          </div>
-        </section>
-      );
-    }
-
-    // --- FilterBar ---
-    function FilterBar({ categories, activeCategory, onSelectCategory, categoryCounts }) {
-      return (
-        <div className="w-full flex flex-col items-center mb-10 text-center">
-          <span className="text-xs font-bold uppercase tracking-widest text-emerald-800 bg-emerald-100/70 px-3 py-1 rounded-full mb-3">
-            Curated Escapes
-          </span>
-          <h2 id="destinations-heading" className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight mb-3">
-            Perfect weekend escapes
-          </h2>
-          <p className="text-base sm:text-lg text-stone-700 max-w-xl mb-8">
-            Choose a destination that matches your mood.
+          <p class="mt-6 max-w-2xl text-lg sm:text-xl text-slate-200 leading-relaxed">
+            Find beautiful Indian destinations, compare short getaways, save favorites and build a simple weekend plan.
           </p>
 
-          <div
-            role="group"
-            aria-label="Filter destinations by category"
-            className="inline-flex flex-wrap items-center justify-center p-1.5 rounded-2xl bg-stone-100 border border-stone-200 gap-1"
-          >
-            {categories.map((category) => {
-              const isSelected = activeCategory === category;
-              const count = categoryCounts[category] || 0;
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => onSelectCategory(category)}
-                  aria-pressed={isSelected}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-white text-emerald-800 shadow-md font-bold'
-                      : 'text-stone-700 hover:text-stone-900 hover:bg-white/60'
-                  }`}
-                >
-                  <span>{category}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${isSelected ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-700'}`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+          <div class="mt-9 flex flex-col sm:flex-row gap-3">
+            <button onclick="scrollToId('destinations')" class="focus-ring px-7 py-4 rounded-2xl bg-emerald-400 text-slate-950 font-black hover:bg-emerald-300 hover:-translate-y-0.5 transition shadow-xl">
+              Explore destinations →
+            </button>
+            <button onclick="scrollToId('planner')" class="focus-ring px-7 py-4 rounded-2xl bg-white/10 border border-white/20 glass text-white font-bold hover:bg-white/20 transition">
+              Plan my weekend
+            </button>
+          </div>
+
+          <div class="mt-12 grid grid-cols-3 max-w-2xl border-t border-white/20 pt-7">
+            <div>
+              <strong class="block text-3xl sm:text-4xl">50+</strong>
+              <span class="text-sm text-slate-300">destinations</span>
+            </div>
+            <div class="border-x border-white/20 px-5">
+              <strong class="block text-3xl sm:text-4xl">2–3</strong>
+              <span class="text-sm text-slate-300">day escapes</span>
+            </div>
+            <div class="pl-5">
+              <strong class="block text-3xl sm:text-4xl">4.8★</strong>
+              <span class="text-sm text-slate-300">top rating</span>
+            </div>
           </div>
         </div>
-      );
-    }
+      </div>
 
-    // --- DestinationCard ---
-    function DestinationCard({ destination, isSelected, onExplore }) {
-      const categoryColors = {
-        Beach: 'bg-cyan-50 text-cyan-800 border-cyan-200/80',
-        Mountain: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
-        Nature: 'bg-amber-50 text-amber-900 border-amber-200/80',
-        City: 'bg-purple-50 text-purple-800 border-purple-200/80',
-      };
-      const badgeClass = categoryColors[destination.category] || 'bg-stone-50 text-stone-700 border-stone-200';
+      <button onclick="scrollToId('destinations')" aria-label="Scroll to destinations"
+        class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/60 hover:text-white transition text-xs uppercase tracking-widest">
+        Scroll ↓
+      </button>
+    </section>
 
-      return (
-        <article className={`group relative flex flex-col bg-white rounded-3xl overflow-hidden border transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${
-          isSelected ? 'border-emerald-600 ring-2 ring-emerald-600/30 shadow-md' : 'border-stone-200 shadow-sm'
-        }`}>
-          <div className="relative w-full aspect-[4/3] bg-stone-100 overflow-hidden">
-            <img
-              src={destination.image}
-              alt={`${destination.name}, ${destination.location}`}
-              loading="lazy"
-              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-            />
-            <div className="absolute top-3.5 left-3.5">
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border backdrop-blur-md ${badgeClass}`}>
-                {destination.category}
-              </span>
-            </div>
-            {isSelected && (
-              <div className="absolute top-3.5 right-3.5">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-md">
-                  ✓ Selected
-                </span>
-              </div>
-            )}
-            <div className="absolute bottom-3 right-3.5">
-              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/95 backdrop-blur-md shadow-md text-xs font-bold text-stone-900">
-                <span className="text-amber-500">★</span>
-                <span>{destination.rating.toFixed(1)}</span>
-              </div>
-            </div>
+    <!-- Search / Filters -->
+    <section id="destinations" class="py-20 sm:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-7">
+          <div>
+            <p class="text-emerald-600 font-black text-sm uppercase tracking-widest">Handpicked escapes</p>
+            <h2 class="mt-2 text-4xl sm:text-5xl font-black tracking-tight">Where will you go?</h2>
+            <p class="mt-3 text-slate-600 max-w-2xl">Search, filter and compare destinations without leaving the page.</p>
           </div>
 
-          <div className="flex flex-col flex-1 p-6">
-            <div className="mb-2">
-              <h3 className="text-xl font-bold text-stone-900 group-hover:text-emerald-700 transition-colors">
-                {destination.name}
-              </h3>
-              <p className="text-xs font-medium text-stone-600 mt-0.5">
-                📍 {destination.location}
-              </p>
+          <div class="w-full lg:w-[380px]">
+            <label for="search" class="sr-only">Search destinations</label>
+            <div class="relative">
+              <input id="search" type="search" placeholder="Search Munnar, Goa, beach..."
+                class="focus-ring w-full pl-11 pr-4 py-4 rounded-2xl border border-slate-200 bg-white shadow-sm outline-none"
+                autocomplete="off" />
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
             </div>
+          </div>
+        </div>
 
-            <p className="text-sm text-stone-700 leading-relaxed line-clamp-2 mb-6">
-              “{destination.description}”
+        <div class="mt-7 flex flex-wrap gap-2" role="group" aria-label="Destination categories">
+          <button data-filter="All" class="filter-btn active focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-slate-950 text-white">All</button>
+          <button data-filter="Beach" class="filter-btn focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-white border border-slate-200">Beach</button>
+          <button data-filter="Mountain" class="filter-btn focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-white border border-slate-200">Mountain</button>
+          <button data-filter="Nature" class="filter-btn focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-white border border-slate-200">Nature</button>
+          <button data-filter="City" class="filter-btn focus-ring px-4 py-2.5 rounded-full font-bold text-sm bg-white border border-slate-200">City</button>
+        </div>
+
+        <div id="resultInfo" class="mt-7 text-sm text-slate-500 font-semibold" aria-live="polite"></div>
+        <div id="cards" class="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+        <div id="emptyState" class="hidden text-center py-20">
+          <div class="text-5xl">🧭</div>
+          <h3 class="mt-4 text-2xl font-black">No destinations found</h3>
+          <p class="mt-2 text-slate-500">Try another search or category.</p>
+          <button onclick="resetFilters()" class="mt-5 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold">Reset filters</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Planner -->
+    <section id="planner" class="py-20 bg-slate-900 text-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start">
+          <div>
+            <p class="text-emerald-300 font-black text-sm uppercase tracking-widest">Mini trip planner</p>
+            <h2 class="mt-3 text-4xl sm:text-5xl font-black">Build your weekend.</h2>
+            <p class="mt-5 text-slate-300 leading-relaxed">
+              Select a destination, travel style and duration. Your plan is saved locally in your browser — no backend required.
             </p>
 
-            <div className="mt-auto pt-4 border-t border-stone-100 flex items-center justify-between gap-3">
-              <div>
-                <div className="text-base sm:text-lg font-extrabold text-stone-900">
-                  ₹{destination.price.toLocaleString('en-IN')}{' '}
-                  <span className="text-xs font-semibold text-stone-500">· {destination.duration}</span>
-                </div>
+            <div class="mt-8 grid grid-cols-3 gap-3">
+              <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                <div class="text-2xl">🔎</div>
+                <p class="mt-2 font-bold text-sm">Discover</p>
               </div>
-
-              <button
-                type="button"
-                onClick={() => onExplore(destination)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-emerald-800 bg-emerald-100/70 hover:bg-emerald-700 hover:text-white transition-all cursor-pointer active:scale-95"
-              >
-                <span>Explore →</span>
-              </button>
+              <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                <div class="text-2xl">♡</div>
+                <p class="mt-2 font-bold text-sm">Save</p>
+              </div>
+              <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+                <div class="text-2xl">✓</div>
+                <p class="mt-2 font-bold text-sm">Plan</p>
+              </div>
             </div>
           </div>
-        </article>
-      );
-    }
 
-    // --- DestinationModal ---
-    function DestinationModal({ destination, isOpen, isSelected, onClose, onSelectDestination }) {
-      const closeRef = useRef(null);
-
-      useEffect(() => {
-        if (!isOpen) return;
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        closeRef.current?.focus();
-
-        const handleKeyDown = (e) => {
-          if (e.key === 'Escape') {
-            e.preventDefault();
-            onClose();
-          }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-          window.removeEventListener('keydown', handleKeyDown);
-          document.body.style.overflow = originalOverflow;
-        };
-      }, [isOpen, onClose]);
-
-      if (!isOpen || !destination) return null;
-
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" role="presentation">
-          <div className="fixed inset-0 bg-stone-950/70 backdrop-blur-sm transition-opacity" onClick={onClose} />
-          
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-title"
-            className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden z-10 my-8 animate-in fade-in zoom-in-95 duration-200"
-          >
-            <button
-              ref={closeRef}
-              type="button"
-              onClick={onClose}
-              aria-label="Close destination details"
-              className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-stone-700 shadow flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              ✕
+          <form id="plannerForm" class="bg-white text-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl">
+            <div class="grid sm:grid-cols-2 gap-5">
+              <div class="sm:col-span-2">
+                <label for="planDestination" class="block text-sm font-extrabold mb-2">Destination</label>
+                <select id="planDestination" required class="focus-ring w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50">
+                  <option value="">Choose a destination</option>
+                </select>
+              </div>
+              <div>
+                <label for="planDays" class="block text-sm font-extrabold mb-2">Duration</label>
+                <select id="planDays" class="focus-ring w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50">
+                  <option>2 Days</option>
+                  <option>3 Days</option>
+                </select>
+              </div>
+              <div>
+                <label for="planStyle" class="block text-sm font-extrabold mb-2">Travel style</label>
+                <select id="planStyle" class="focus-ring w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50">
+                  <option>Nature & Relax</option>
+                  <option>Adventure</option>
+                  <option>Culture & Food</option>
+                  <option>Photography</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <label for="planBudget" class="block text-sm font-extrabold mb-2">Budget per person: <span id="budgetValue">₹7,500</span></label>
+                <input id="planBudget" type="range" min="3000" max="15000" step="500" value="7500" class="w-full accent-emerald-500" />
+                <div class="flex justify-between text-xs text-slate-500 mt-1"><span>₹3k</span><span>₹15k</span></div>
+              </div>
+            </div>
+            <button class="focus-ring mt-6 w-full py-4 rounded-xl bg-emerald-400 text-slate-950 font-black hover:bg-emerald-300 transition">
+              Generate my plan ✨
             </button>
+            <div id="planOutput" class="hidden mt-5 rounded-2xl bg-slate-50 border border-slate-200 p-5" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+    </section>
 
-            <div className="relative w-full aspect-[16/9] bg-stone-100 overflow-hidden">
-              <img src={destination.image} alt={destination.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              <div className="absolute bottom-4 left-6 right-6 text-white">
-                <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-xs font-bold uppercase tracking-wider mb-2">
-                  {destination.category}
-                </span>
-                <h3 id="modal-title" className="text-2xl sm:text-3xl font-extrabold">{destination.name}</h3>
-                <p className="text-sm text-stone-200 mt-0.5">📍 {destination.location}</p>
-              </div>
-            </div>
+    <!-- Features -->
+    <section class="py-20 sm:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto">
+          <p class="text-emerald-600 font-black text-sm uppercase tracking-widest">Designed for real users</p>
+          <h2 class="mt-3 text-4xl font-black">Simple, useful, interactive.</h2>
+        </div>
+        <div class="mt-12 grid md:grid-cols-3 gap-6">
+          <article class="bg-white border border-slate-200 rounded-3xl p-7 shadow-soft">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 grid place-items-center text-2xl">⚡</div>
+            <h3 class="mt-5 text-xl font-black">Fast interactions</h3>
+            <p class="mt-2 text-slate-600 leading-relaxed">Client-side filtering, favorites, search, modal details and trip planning work instantly.</p>
+          </article>
+          <article class="bg-white border border-slate-200 rounded-3xl p-7 shadow-soft">
+            <div class="w-12 h-12 rounded-2xl bg-blue-100 grid place-items-center text-2xl">📱</div>
+            <h3 class="mt-5 text-xl font-black">Responsive by default</h3>
+            <p class="mt-2 text-slate-600 leading-relaxed">Layouts adapt across mobile, tablet and desktop with touch-friendly controls.</p>
+          </article>
+          <article class="bg-white border border-slate-200 rounded-3xl p-7 shadow-soft">
+            <div class="w-12 h-12 rounded-2xl bg-violet-100 grid place-items-center text-2xl">♿</div>
+            <h3 class="mt-5 text-xl font-black">Accessible UI</h3>
+            <p class="mt-2 text-slate-600 leading-relaxed">Semantic landmarks, labels, focus states, keyboard-friendly dialogs and reduced-motion support.</p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-            <div className="p-6 sm:p-8 space-y-6 max-h-[calc(85vh-200px)] overflow-y-auto">
-              <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-200 text-center">
-                <div>
-                  <div className="text-xs text-stone-500 font-medium">Rating</div>
-                  <div className="text-stone-900 font-extrabold text-base mt-0.5">★ {destination.rating.toFixed(1)}</div>
-                </div>
-                <div className="border-x border-stone-200">
-                  <div className="text-xs text-stone-500 font-medium">Price</div>
-                  <div className="text-stone-900 font-extrabold text-base mt-0.5">₹{destination.price.toLocaleString('en-IN')}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-stone-500 font-medium">Duration</div>
-                  <div className="text-stone-900 font-extrabold text-base mt-0.5">{destination.duration}</div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-bold uppercase tracking-wider text-stone-400 mb-2">Description</h4>
-                <p className="text-stone-700 leading-relaxed text-sm sm:text-base">{destination.detailedDescription}</p>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-bold uppercase tracking-wider text-stone-400 mb-3">Highlights</h4>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {destination.highlights.map((h, idx) => (
-                    <li key={idx} className="flex items-center gap-2.5 text-sm font-medium text-stone-800 bg-emerald-50 border border-emerald-100 rounded-xl px-3.5 py-2">
-                      <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">✓</span>
-                      <span>{h}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className="p-6 bg-stone-50 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <span className="text-xs text-stone-500 font-medium block">Starting from</span>
-                <span className="text-2xl font-black text-stone-900">₹{destination.price.toLocaleString('en-IN')}</span>
-                <span className="text-xs text-stone-500 ml-1">· {destination.duration}</span>
-              </div>
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <button type="button" onClick={onClose} className="px-5 py-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-200 cursor-pointer">
-                  Close
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSelectDestination(destination)}
-                  className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-lg cursor-pointer transition-colors active:scale-95 ${
-                    isSelected ? 'bg-emerald-800' : 'bg-emerald-600 hover:bg-emerald-700'
-                  }`}
-                >
-                  <span>{isSelected ? '✓ Selected' : 'Choose this destination'}</span>
-                </button>
-              </div>
+    <!-- About / Documentation -->
+    <section id="about" class="py-20 bg-slate-100">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-10">
+          <div>
+            <p class="text-emerald-600 font-black text-sm uppercase tracking-widest">About the project</p>
+            <h2 class="mt-3 text-4xl sm:text-5xl font-black">Weekend Escape</h2>
+            <p class="mt-5 text-slate-600 leading-relaxed">
+              A frontend-only hackathon prototype focused on discovering short Indian getaways.
+              It demonstrates responsive UI, meaningful interactions, client-side state and accessible design without requiring a server.
+            </p>
+            <div class="mt-7 flex flex-wrap gap-2">
+              <span class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm font-bold">HTML5</span>
+              <span class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm font-bold">Tailwind CSS</span>
+              <span class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm font-bold">JavaScript</span>
+              <span class="px-3 py-2 rounded-full bg-white border border-slate-200 text-sm font-bold">LocalStorage</span>
             </div>
           </div>
+
+          <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8">
+            <h3 class="text-xl font-black">Frontend implementation</h3>
+            <ul class="mt-5 space-y-4 text-slate-600">
+              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Reusable destination data rendered through JavaScript.</span></li>
+              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Single-page navigation and responsive mobile menu.</span></li>
+              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Search and category filtering with live result count.</span></li>
+              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Favorites and theme preference persisted with LocalStorage.</span></li>
+              <li class="flex gap-3"><span class="text-emerald-500 font-black">✓</span><span>Interactive destination details and trip planner.</span></li>
+            </ul>
+          </div>
         </div>
-      );
-    }
+      </div>
+    </section>
+  </main>
 
-    // --- Main Application ---
-    function App() {
-      const [activeCategory, setActiveCategory] = useState('All');
-      const [selectedDestination, setSelectedDestination] = useState(null);
-      const [modalDestination, setModalDestination] = useState(null);
-      const [isModalOpen, setIsModalOpen] = useState(false);
+  <!-- Footer -->
+  <footer class="bg-slate-950 text-slate-300 py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between gap-4">
+      <div>
+        <div class="text-white font-black text-lg">Weekend Escape</div>
+        <p class="text-sm mt-1">Frontend Arena Hackathon Prototype</p>
+      </div>
+      <p class="text-sm">Built with responsive UI, accessibility & client-side interactions.</p>
+    </div>
+  </footer>
 
-      const closeModal = useCallback(() => setIsModalOpen(false), []);
-
-      const filteredDestinations = useMemo(() => {
-        if (activeCategory === 'All') return destinations;
-        return destinations.filter((d) => d.category === activeCategory);
-      }, [activeCategory]);
-
-      const categoryCounts = useMemo(() => {
-        const counts = { All: destinations.length, Beach: 0, Mountain: 0, Nature: 0, City: 0 };
-        destinations.forEach((d) => { if (counts[d.category] !== undefined) counts[d.category] += 1; });
-        return counts;
-      }, []);
-
-      const handleExploreClick = () => {
-        const sec = document.getElementById('destinations');
-        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      };
-
-      return (
-        <div className="min-h-screen flex flex-col bg-[#FAF8F5]">
-          <Header onExploreClick={handleExploreClick} selectedCount={selectedDestination ? 1 : 0} />
-          
-          <main id="main-content" className="flex-1">
-            <Hero onExploreClick={handleExploreClick} />
-
-            <section id="why-us" className="py-12 bg-white border-y border-stone-200">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold shrink-0">⏱️</div>
-                  <div>
-                    <h3 className="font-bold text-base text-stone-900">2 to 3 Day Itineraries</h3>
-                    <p className="text-sm text-stone-600 mt-1">Carefully planned trips tailored for quick weekend turnarounds.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold shrink-0">🌿</div>
-                  <div>
-                    <h3 className="font-bold text-base text-stone-900">Curated & Tested</h3>
-                    <p className="text-sm text-stone-600 mt-1">Verified homestays, authentic local food stops, and scenic trails.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold shrink-0">💰</div>
-                  <div>
-                    <h3 className="font-bold text-base text-stone-900">Budget Friendly</h3>
-                    <p className="text-sm text-stone-600 mt-1">Transparent cost estimates covering stay, local food, and activities.</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section id="destinations" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-20">
-              <FilterBar
-                categories={CATEGORIES}
-                activeCategory={activeCategory}
-                onSelectCategory={setActiveCategory}
-                categoryCounts={categoryCounts}
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {filteredDestinations.map((dest) => (
-                  <DestinationCard
-                    key={dest.id}
-                    destination={dest}
-                    isSelected={selectedDestination?.id === dest.id}
-                    onExplore={(d) => { setModalDestination(d); setIsModalOpen(true); }}
-                  />
-                ))}
-              </div>
-            </section>
-
-            <section id="about" className="py-20 bg-stone-100/70 border-t border-stone-200 text-center scroll-mt-18">
-              <div className="max-w-4xl mx-auto px-4">
-                <span className="text-xs font-bold uppercase tracking-widest text-emerald-800 bg-emerald-100 px-3.5 py-1 rounded-full mb-4 inline-block">
-                  About Weekend Escape
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900 mb-4">Reclaim your weekend.</h2>
-                <p className="text-base sm:text-lg text-stone-700 max-w-2xl mx-auto mb-6">
-                  Great travel shouldn't require taking two weeks off. With Weekend Escape, your next adventure is just a quick drive or train ride away.
-                </p>
-                <div className="inline-flex items-center gap-3 p-2 pr-6 rounded-full bg-white shadow-sm border border-stone-200 text-sm font-semibold text-stone-800">
-                  <span className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
-                    WE
-                  </span>
-                  <span>Designed for spontaneous weekend travelers</span>
-                </div>
-              </div>
-            </section>
-          </main>
-
-          <footer className="w-full bg-stone-900 text-stone-300 py-12 border-t border-stone-800 text-center">
-            <p className="font-bold text-white text-lg">Weekend Escape</p>
-            <p className="text-xs text-stone-400 mt-2">© {new Date().getFullYear()} Weekend Escape. All rights reserved.</p>
-          </footer>
-
-          <DestinationModal
-            destination={modalDestination}
-            isOpen={isModalOpen}
-            isSelected={modalDestination?.id === selectedDestination?.id}
-            onClose={closeModal}
-            onSelectDestination={(d) => { setSelectedDestination(d); setIsModalOpen(false); }}
-          />
-
-          {selectedDestination && (
-            <aside className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-lg animate-in slide-in-from-bottom-4 duration-200">
-              <div role="status" aria-live="polite" className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-stone-900 text-white shadow-2xl border border-stone-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold">✓</div>
-                  <div>
-                    <div className="text-sm font-bold">✓ {selectedDestination.name} selected!</div>
-                    <div className="text-xs text-stone-400">{selectedDestination.duration} getaway in {selectedDestination.location}</div>
-                  </div>
-                </div>
-                <button type="button" onClick={() => setSelectedDestination(null)} className="p-1 text-stone-400 hover:text-white cursor-pointer" aria-label="Dismiss">✕</button>
-              </div>
-            </aside>
-          )}
-        </div>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
-</body>
-</html>
+  <!-- Destination Modal -->
+  <div id="modal" class="hidden fixed inset-0 z-[80] bg-slate-950/70 p-4 sm:p-8 items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div id="modalPanel" class="relative bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-auto shadow-2xl">
+      <button id="closeModal" class="focus-ring absolute right-4 top-4 z-10 w-11 h-11 rounded-full bg-slate-950/80 text-white text-xl" aria-label="Close dialog">×</button>
+      <img id="modalImage" class="w-full h-56
